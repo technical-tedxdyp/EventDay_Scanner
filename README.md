@@ -9,24 +9,24 @@ Use the following QR codes to test different scenarios:
 
 ### ✅ Valid Ticket QR (Sample 1)
 
-![Valid QR](./assets/Valid QR.png)
+<img src="./sample_qr/Valid QR.png" width="200"/>
 
 ---
 
 ### ✅ Valid Ticket QR (Sample 2)
 
-![Valid QR 2](./assets/Valid QR 2.png)
+<img src="./sample_qr/Valid QR 2.png" width="200"/>
 
 ---
 
 ### ❌ Invalid Ticket QR
 
-![Invalid QR](./assets/Invalid QR.png)
+<img src="./sample_qr/Invalid QR.png" width="200"/>
 
 ---
 
 ### ⚠️ Already Used Ticket QR
 
-![Already Used QR](./assets/Already used QR.png)
+<img src="./sample_qr/Already used QR.png" width="200"/>
 
 ---
