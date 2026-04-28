@@ -127,13 +127,9 @@ export default function LoginScreen() {
             },
           ]}
         >
-          {/* Decorative hex icon */}
-          <View style={styles.iconContainer}>
-            <View style={styles.hexOuter}>
-              <View style={styles.hexInner}>
-                <Text style={styles.hexIcon}>⬡</Text>
-              </View>
-            </View>
+          {/* TEDx Logo */}
+          <View style={styles.tedxLogoContainer}>
+            <Text style={styles.tedxText}>TED<Text style={styles.tedxTextSmall}>x</Text></Text>
           </View>
 
           <Text style={styles.title}>{APP_NAME}</Text>
@@ -241,31 +237,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.xl,
   },
-  iconContainer: {
+  tedxLogoContainer: {
     marginBottom: SPACING.lg,
-  },
-  hexOuter: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: 'rgba(255, 59, 59, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#000000',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+    borderColor: 'rgba(255, 59, 59, 0.3)',
     ...SHADOW.glowSubtle,
   },
-  hexInner: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 59, 59, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  hexIcon: {
-    fontSize: 28,
+  tedxText: {
+    fontSize: 48,
+    fontWeight: '900',
     color: COLORS.primary,
+    letterSpacing: 2,
+    textShadowColor: COLORS.primaryGlow,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+  },
+  tedxTextSmall: {
+    fontSize: 36,
+    fontWeight: '700',
   },
   title: {
     fontSize: FONT_SIZE.hero,
