@@ -38,7 +38,7 @@ export function StatusBadge({
   }, [pulse, pulseAnim]);
 
   return (
-    <View style={styles.badge}>
+    <View style={[styles.badge, { backgroundColor: `${color}15`, borderColor: `${color}25` }]}>
       <Animated.View
         style={[
           styles.dot,
@@ -54,13 +54,11 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 59, 59, 0.08)',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs + 2,
     borderRadius: RADIUS.round,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: 'rgba(255, 59, 59, 0.15)',
   },
   dot: {
     width: 8,

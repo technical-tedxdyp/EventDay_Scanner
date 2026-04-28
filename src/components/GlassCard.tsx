@@ -6,20 +6,22 @@ type GlassCardProps = {
   children: React.ReactNode;
   style?: ViewStyle;
   glowIntensity?: 'subtle' | 'medium' | 'strong';
+  variant?: 'primary' | 'success';
 };
 
-export function GlassCard({ children, style, glowIntensity = 'medium' }: GlassCardProps) {
+export function GlassCard({ children, style, glowIntensity = 'medium', variant = 'primary' }: GlassCardProps) {
+  const isSuccess = variant === 'success';
   const glowStyle =
     glowIntensity === 'strong'
-      ? SHADOW.glow
+      ? isSuccess ? { ...SHADOW.glow, shadowColor: '#34D399' } : SHADOW.glow
       : glowIntensity === 'subtle'
-        ? SHADOW.glowSubtle
-        : SHADOW.cardShadow;
+        ? isSuccess ? { ...SHADOW.glowSubtle, shadowColor: '#34D399' } : SHADOW.glowSubtle
+        : isSuccess ? { ...SHADOW.cardShadow, shadowColor: '#34D399' } : SHADOW.cardShadow;
 
   return (
     <View style={[styles.outerGlow, glowStyle]}>
-      <View style={[styles.card, style]}>
-        <View style={styles.borderGlow} />
+      <View style={[styles.card, isSuccess && { borderColor: 'rgba(0, 255, 65, 0.15)' }, style]}>
+        <View style={[styles.borderGlow, isSuccess && { backgroundColor: '#00FF41' }]} />
         {children}
       </View>
     </View>

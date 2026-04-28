@@ -13,6 +13,12 @@ import { GlassCard } from '@/components/GlassCard';
 import { NeonButton } from '@/components/NeonButton';
 import { StatusBadge } from '@/components/StatusBadge';
 
+const VALID_COLORS = {
+  primary: '#00FF41', // Neon Green
+  primaryGlow: '#34D399',
+  bgAccent: 'rgba(0, 255, 65, 0.15)',
+};
+
 const { width } = Dimensions.get('window');
 
 export default function ValidScreen() {
@@ -123,9 +129,9 @@ export default function ValidScreen() {
           },
         ]}
       >
-        <GlassCard glowIntensity="strong">
+        <GlassCard glowIntensity="strong" variant="success">
           <View style={styles.cardHeader}>
-            <StatusBadge label="VERIFIED" />
+            <StatusBadge label="VERIFIED" color={VALID_COLORS.primary} />
             <Text style={styles.ticketId}>{params.ticketId || 'TKT-00000'}</Text>
           </View>
 
@@ -165,7 +171,7 @@ export default function ValidScreen() {
         </GlassCard>
 
         <View style={styles.buttonSection}>
-          <NeonButton title="ALLOW ENTRY" onPress={handleAllowEntry} />
+          <NeonButton title="ALLOW ENTRY" onPress={handleAllowEntry} variant="success" />
         </View>
 
         <Text style={styles.footerText}>
@@ -188,7 +194,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: COLORS.primaryGlow,
+    backgroundColor: VALID_COLORS.primaryGlow,
     opacity: 0.04,
   },
   bgAccent2: {
@@ -198,7 +204,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: COLORS.primary,
+    backgroundColor: VALID_COLORS.primary,
     opacity: 0.03,
   },
   statusSection: {
@@ -215,29 +221,30 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 2,
-    borderColor: COLORS.primary,
+    borderColor: VALID_COLORS.primary,
     ...SHADOW.glow,
+    shadowColor: VALID_COLORS.primaryGlow, // override shadow color
   },
   checkIcon: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255, 59, 59, 0.15)',
+    backgroundColor: VALID_COLORS.bgAccent,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: COLORS.primary,
+    borderColor: VALID_COLORS.primary,
     marginBottom: SPACING.md,
   },
   checkText: {
     fontSize: 36,
-    color: COLORS.primary,
+    color: VALID_COLORS.primary,
     fontWeight: '900',
   },
   statusTitle: {
     fontSize: FONT_SIZE.mega,
     fontWeight: '900',
-    color: COLORS.primary,
+    color: VALID_COLORS.primary,
     letterSpacing: 12,
   },
   statusSub: {
@@ -305,16 +312,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cardBorder,
   },
   accessBadge: {
-    backgroundColor: 'rgba(255, 59, 59, 0.15)',
+    backgroundColor: VALID_COLORS.bgAccent,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.sm,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: VALID_COLORS.primary,
     marginTop: SPACING.xs,
   },
   accessBadgeText: {
-    color: COLORS.primary,
+    color: VALID_COLORS.primary,
     fontSize: FONT_SIZE.md,
     fontWeight: '900',
     letterSpacing: 3,

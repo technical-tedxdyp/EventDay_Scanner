@@ -12,7 +12,7 @@ import { COLORS, RADIUS, SPACING, FONT_SIZE, SHADOW } from '@/utils/theme';
 type NeonButtonProps = {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'danger' | 'accent';
+  variant?: 'primary' | 'secondary' | 'danger' | 'accent' | 'success';
   disabled?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
@@ -55,13 +55,25 @@ export function NeonButton({
         ? COLORS.accent
         : variant === 'danger'
           ? COLORS.primaryDark
-          : COLORS.primary;
+          : variant === 'success'
+            ? '#00FF41' // matching VALID_COLORS.primary
+            : COLORS.primary;
 
   const borderColor =
     variant === 'secondary' ? COLORS.primary : 'transparent';
 
   const glowShadow =
-    variant === 'accent' ? SHADOW.glowAccent : SHADOW.glow;
+    variant === 'accent'
+      ? SHADOW.glowAccent
+      : variant === 'success'
+        ? {
+            shadowColor: '#34D399', // VALID_COLORS.primaryGlow
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.8,
+            shadowRadius: 20,
+            elevation: 15,
+          }
+        : SHADOW.glow;
 
   return (
     <Animated.View
