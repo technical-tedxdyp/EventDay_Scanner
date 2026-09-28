@@ -1,25 +1,18 @@
-import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  Dimensions,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOW } from '@/utils/theme';
 import { GlassCard } from '@/components/GlassCard';
 import { NeonButton } from '@/components/NeonButton';
 import { StatusBadge } from '@/components/StatusBadge';
+import { checkInTicket } from '@/services/api';
 
 const VALID_COLORS = {
-  primary: '#00FF41', // Neon Green
-  primaryGlow: '#34D399',
-  bgAccent: 'rgba(0, 255, 65, 0.15)',
+  primary: '#00FF66',
+  primaryGlow: 'rgba(0, 255, 102, 0.4)',
+  bgAccent: 'rgba(0, 255, 102, 0.08)',
 };
-
-const { width } = Dimensions.get('window');
 
 export default function ValidScreen() {
   const router = useRouter();
@@ -30,6 +23,7 @@ export default function ValidScreen() {
     ticketId: string;
   }>();
   const insets = useSafeAreaInsets();
+  const [checkingIn, setCheckingIn] = useState(false);
 
   // Animations
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
@@ -87,7 +81,12 @@ export default function ValidScreen() {
     }, 200);
   }, []);
 
-  const handleAllowEntry = () => {
+  const handleAllowEntry = async () => {
+    setCheckingIn(true);
+    if (params.ticketId) {
+      await checkInTicket(params.ticketId, 'Mobile Scanner App');
+    }
+    setCheckingIn(false);
     router.replace('/(tabs)/scanner');
   };
 
@@ -132,25 +131,25 @@ export default function ValidScreen() {
         <GlassCard glowIntensity="strong" variant="success">
           <View style={styles.cardHeader}>
             <StatusBadge label="VERIFIED" color={VALID_COLORS.primary} />
-            <Text style={styles.ticketId}>{params.ticketId || 'TKT-00000'}</Text>
+            <Text style={styles.ticketId}>{params.ticketId || 'TEDX-2026-00000'}</Text>
           </View>
 
           <View style={styles.detailsGrid}>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>TICKET HOLDER</Text>
-              <Text style={styles.detailValue}>{params.holderName || 'UNKNOWN'}</Text>
+              <Text style={styles.detailValue}>{params.holderName || 'UNKNOWN ATTENDEE'}</Text>
             </View>
 
             <View style={styles.detailDivider} />
 
             <View style={styles.detailRowInline}>
               <View style={styles.detailCol}>
-                <Text style={styles.detailLabel}>GROUP SIZE</Text>
+                <Text style={styles.detailLabel}>TICKET COUNT</Text>
                 <Text style={styles.detailValueLarge}>{params.group || '1'}</Text>
               </View>
               <View style={styles.detailColDivider} />
               <View style={styles.detailCol}>
-                <Text style={styles.detailLabel}>ACCESS TYPE</Text>
+                <Text style={styles.detailLabel}>SESSION / PASS</Text>
                 <View style={styles.accessBadge}>
                   <Text style={styles.accessBadgeText}>
                     {params.accessType || 'GENERAL'}
@@ -162,20 +161,26 @@ export default function ValidScreen() {
             <View style={styles.detailDivider} />
 
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>CLEARANCE LEVEL</Text>
+              <Text style={styles.detailLabel}>CLEARANCE STATUS</Text>
               <Text style={styles.detailValue}>
-                {params.accessType === 'VIP' ? 'LEVEL 5 — UNRESTRICTED' : 'LEVEL 3 — STANDARD'}
+                {params.accessType?.includes('VIP') ? 'LEVEL 5 — UNRESTRICTED VIP' : 'LEVEL 3 — GENERAL ADMIT'}
               </Text>
             </View>
           </View>
         </GlassCard>
 
         <View style={styles.buttonSection}>
-          <NeonButton title="ALLOW ENTRY" onPress={handleAllowEntry} variant="success" />
+          <NeonButton
+            title={checkingIn ? "RECORDING ENTRY..." : "ALLOW ENTRY & CHECK IN"}
+            onPress={handleAllowEntry}
+            disabled={checkingIn}
+            loading={checkingIn}
+            variant="success"
+          />
         </View>
 
         <Text style={styles.footerText}>
-          ENTRY LOGGED • {new Date().toLocaleTimeString().toUpperCase()}
+          READY FOR ADMISSION • {new Date().toLocaleTimeString().toUpperCase()}
         </Text>
       </Animated.View>
     </View>
@@ -223,7 +228,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: VALID_COLORS.primary,
     ...SHADOW.glow,
-    shadowColor: VALID_COLORS.primaryGlow, // override shadow color
+    shadowColor: VALID_COLORS.primaryGlow,
   },
   checkIcon: {
     width: 80,

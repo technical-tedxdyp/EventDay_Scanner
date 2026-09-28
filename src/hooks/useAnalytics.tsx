@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { fetchDashboardStats, fetchEntryLogs, type EntryLogItem } from '@/services/api';
 
 export type ScanRecord = {
   id: string;
@@ -19,6 +20,7 @@ type AnalyticsState = {
 
 type AnalyticsContextType = AnalyticsState & {
   recordScan: (type: 'valid' | 'invalid' | 'duplicate', name?: string, ticketId?: string) => void;
+  refreshStats: () => Promise<void>;
   successRate: number;
   rejectionRate: number;
   duplicateRate: number;
@@ -27,13 +29,13 @@ type AnalyticsContextType = AnalyticsState & {
 };
 
 const MOCK_HISTORY: ScanRecord[] = [
-  { id: 'm1', name: 'AGENT COLE', ticketId: 'TKT-00201', status: 'valid', time: new Date(Date.now() - 3600000 * 2) },
-  { id: 'm2', name: 'OPERATIVE NASH', ticketId: 'TKT-00145', status: 'valid', time: new Date(Date.now() - 3600000 * 1.5) },
-  { id: 'm3', name: 'CONTACT LIU', ticketId: 'TKT-00089', status: 'invalid', time: new Date(Date.now() - 3600000) },
-  { id: 'm4', name: 'AGENT VOLKOV', ticketId: 'TKT-00312', status: 'valid', time: new Date(Date.now() - 2700000) },
-  { id: 'm5', name: 'ASSET BRENNAN', ticketId: 'TKT-00067', status: 'duplicate', time: new Date(Date.now() - 1800000) },
-  { id: 'm6', name: 'OPERATIVE DIAZ', ticketId: 'TKT-00411', status: 'valid', time: new Date(Date.now() - 1200000) },
-  { id: 'm7', name: 'CONTACT YUEN', ticketId: 'TKT-00288', status: 'valid', time: new Date(Date.now() - 600000) },
+  { id: 'm1', name: 'AGENT COLE', ticketId: 'TEDX-2026-00201', status: 'valid', time: new Date(Date.now() - 3600000 * 2) },
+  { id: 'm2', name: 'OPERATIVE NASH', ticketId: 'TEDX-2026-00145', status: 'valid', time: new Date(Date.now() - 3600000 * 1.5) },
+  { id: 'm3', name: 'CONTACT LIU', ticketId: 'TEDX-2026-00089', status: 'invalid', time: new Date(Date.now() - 3600000) },
+  { id: 'm4', name: 'AGENT VOLKOV', ticketId: 'TEDX-2026-00312', status: 'valid', time: new Date(Date.now() - 2700000) },
+  { id: 'm5', name: 'ASSET BRENNAN', ticketId: 'TEDX-2026-00067', status: 'duplicate', time: new Date(Date.now() - 1800000) },
+  { id: 'm6', name: 'OPERATIVE DIAZ', ticketId: 'TEDX-2026-00411', status: 'valid', time: new Date(Date.now() - 1200000) },
+  { id: 'm7', name: 'CONTACT YUEN', ticketId: 'TEDX-2026-00288', status: 'valid', time: new Date(Date.now() - 600000) },
 ];
 
 const INITIAL_STATE: AnalyticsState = {
@@ -50,11 +52,52 @@ const AnalyticsContext = createContext<AnalyticsContextType | null>(null);
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AnalyticsState>(INITIAL_STATE);
 
+  const refreshStats = useCallback(async () => {
+    try {
+      const [stats, logsData] = await Promise.all([
+        fetchDashboardStats(),
+        fetchEntryLogs(1, 20),
+      ]);
+
+      if (stats) {
+        setState((prev) => {
+          let updatedHistory = prev.history;
+          if (logsData && logsData.logs && logsData.logs.length > 0) {
+            updatedHistory = logsData.logs.map((log: EntryLogItem) => ({
+              id: log._id,
+              name: (log.booking?.name || 'ATTENDEE').toUpperCase(),
+              ticketId: log.ticketId,
+              status: 'valid' as const,
+              time: new Date(log.scannedAt),
+            }));
+          }
+
+          const valid = stats.checkedInBookingsCount || prev.validCount;
+          const total = Math.max(stats.totalCheckInLogs || prev.totalScans, valid + prev.invalidCount + prev.duplicateCount);
+
+          return {
+            ...prev,
+            totalScans: total,
+            validCount: valid,
+            activeEntries: valid,
+            history: updatedHistory,
+          };
+        });
+      }
+    } catch {
+      // Keep local state on fetch error
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshStats();
+  }, [refreshStats]);
+
   const recordScan = useCallback((type: 'valid' | 'invalid' | 'duplicate', name?: string, ticketId?: string) => {
     const record: ScanRecord = {
       id: `s-${Date.now()}`,
       name: name || 'UNKNOWN',
-      ticketId: ticketId || 'TKT-XXXXX',
+      ticketId: ticketId || 'TEDX-2026-XXXXX',
       status: type,
       time: new Date(),
     };
@@ -116,7 +159,10 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     return { successRate, rejectionRate, duplicateRate, entryRate, peakWindow };
   }, [state]);
 
-  const value = useMemo(() => ({ ...state, ...derived, recordScan }), [state, derived, recordScan]);
+  const value = useMemo(
+    () => ({ ...state, ...derived, recordScan, refreshStats }),
+    [state, derived, recordScan, refreshStats]
+  );
 
   return (
     <AnalyticsContext.Provider value={value}>
