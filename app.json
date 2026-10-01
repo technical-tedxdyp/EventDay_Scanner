@@ -45,7 +45,11 @@
         {
           "cameraPermission": "TedXScanner needs camera access to scan tickets."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -54,8 +58,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "43769ea6-e8ee-463a-8e47-0ed88c5aaca0"
+        "projectId": "dc0f2649-0001-461a-97a3-31bd11870a16"
       }
-    }
+    },
+    "owner": "soham02"
   }
 }
