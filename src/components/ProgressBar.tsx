@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { COLORS, SPACING, FONT_SIZE, RADIUS, SHADOW } from '@/utils/theme';
+import { COLORS, SPACING, FONT_SIZE, FONT_FAMILY } from '@/utils/theme';
 
 type ProgressBarProps = {
   label: string;
@@ -38,10 +38,6 @@ export function ProgressBar({ label, percentage, color = COLORS.primary, showVal
             {
               width: animatedWidth,
               backgroundColor: color,
-              shadowColor: color,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.6,
-              shadowRadius: 8,
             },
           ]}
         />
@@ -61,6 +57,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   label: {
+    fontFamily: FONT_FAMILY.pixel,
     fontSize: FONT_SIZE.xs,
     fontWeight: '700',
     color: COLORS.textSecondary,
@@ -68,18 +65,19 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   value: {
+    fontFamily: FONT_FAMILY.sans,
     fontSize: FONT_SIZE.sm,
     fontWeight: '800',
     letterSpacing: 1,
   },
   track: {
-    height: 6,
-    backgroundColor: 'rgba(255,59,59,0.08)',
-    borderRadius: RADIUS.round,
+    height: 8,
+    backgroundColor: COLORS.cardBorder,
+    borderRadius: 0,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    borderRadius: RADIUS.round,
+    borderRadius: 0,
   },
 });

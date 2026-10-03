@@ -1,21 +1,20 @@
 {
   "expo": {
-    "name": "TedXScanner",
-    "slug": "TedXScanner",
+    "name": "TedxDYP 2026 Scanner",
+    "slug": "tedxdyp-2026-scanner",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "tedxscanner",
-    "userInterfaceStyle": "dark",
+    "scheme": "tedxdyp2026scanner",
+    "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/apple-icon.png"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#000000",
+        "backgroundColor": "#f4f3ed",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundImage": "./assets/images/android-icon-background.png"
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
@@ -26,14 +25,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.ico"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#000000",
+          "backgroundColor": "#f4f3ed",
           "android": {
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
@@ -58,9 +57,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "dc0f2649-0001-461a-97a3-31bd11870a16"
+        "projectId": ""
       }
     },
-    "owner": "soham02"
+    "owner": "TEDxDYP"
   }
 }

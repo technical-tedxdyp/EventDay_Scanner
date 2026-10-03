@@ -7,7 +7,7 @@ import {
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
-import { COLORS, RADIUS, SPACING, FONT_SIZE, SHADOW } from '@/utils/theme';
+import { COLORS, SPACING, FONT_SIZE, FONT_FAMILY, SHADOW } from '@/utils/theme';
 
 type NeonButtonProps = {
   title: string;
@@ -52,34 +52,22 @@ export function NeonButton({
     variant === 'secondary'
       ? 'transparent'
       : variant === 'accent'
-        ? COLORS.accent
+        ? COLORS.accentSoft
         : variant === 'danger'
           ? COLORS.primaryDark
           : variant === 'success'
-            ? '#00FF41' // matching VALID_COLORS.primary
+            ? COLORS.success
             : COLORS.primary;
 
-  const borderColor =
-    variant === 'secondary' ? COLORS.primary : 'transparent';
-
-  const glowShadow =
-    variant === 'accent'
-      ? SHADOW.glowAccent
-      : variant === 'success'
-        ? {
-            shadowColor: '#34D399', // VALID_COLORS.primaryGlow
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.8,
-            shadowRadius: 20,
-            elevation: 15,
-          }
-        : SHADOW.glow;
+  const darkText = variant === 'accent' || variant === 'secondary';
+  const visuallyDisabled = disabled && !loading;
+  const hasOffsetShadow = variant !== 'secondary' && !visuallyDisabled;
 
   return (
     <Animated.View
       style={[
         { transform: [{ scale: scaleAnim }] },
-        disabled ? null : glowShadow,
+        hasOffsetShadow ? SHADOW.button : null,
       ]}
     >
       <Pressable
@@ -90,9 +78,13 @@ export function NeonButton({
         style={[
           styles.button,
           {
-            backgroundColor: disabled ? COLORS.textMuted : bgColor,
-            borderColor,
-            borderWidth: variant === 'secondary' ? 1.5 : 0,
+            backgroundColor: visuallyDisabled ? COLORS.background : bgColor,
+            borderColor:
+              visuallyDisabled || variant === 'secondary' || darkText
+                ? COLORS.dark
+                : COLORS.accentSoft,
+            borderWidth: 2,
+            opacity: visuallyDisabled ? 0.72 : 1,
           },
           style,
         ]}
@@ -100,9 +92,9 @@ export function NeonButton({
         <Text
           style={[
             styles.text,
-            variant === 'secondary' && { color: COLORS.primary },
-            disabled && { color: COLORS.background },
+            { color: darkText ? COLORS.dark : COLORS.foreground },
             textStyle,
+            visuallyDisabled && { color: COLORS.dark },
           ]}
         >
           {loading ? 'PROCESSING...' : title}
@@ -116,16 +108,17 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.xl,
-    borderRadius: RADIUS.md,
+    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 52,
+    minHeight: 54,
   },
   text: {
+    fontFamily: FONT_FAMILY.sans,
     color: COLORS.text,
     fontSize: FONT_SIZE.lg,
     fontWeight: '800',
-    letterSpacing: 2,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
 });

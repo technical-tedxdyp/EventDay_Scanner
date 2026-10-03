@@ -1,95 +1,130 @@
-import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { COLORS } from '@/utils/theme';
 import { Tabs } from 'expo-router';
-import { COLORS, FONT_SIZE } from '@/utils/theme';
+import {
+    ChartNoAxesCombined,
+    QrCode,
+    ScanLine,
+} from 'lucide-react-native';
+import {
+    Platform,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
 
-function TabIcon({ label, focused, icon }: { label: string; focused: boolean; icon: string }) {
-  return (
-    <View style={styles.tabItem}>
-      <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>{icon}</Text>
-      <Text style={[styles.tabLabel, focused && styles.tabLabelActive]} numberOfLines={1}>{label}</Text>
-      {focused && <View style={styles.activeDot} />}
-    </View>
-  );
+type TabIconProps = {
+    focused: boolean;
+    type: 'scanner' | 'analytics';
+};
+
+function TabIcon({
+    focused,
+    type,
+}: TabIconProps) {
+    const Icon =
+        type === 'scanner'
+            ? QrCode
+            : ChartNoAxesCombined;
+
+    return (
+        <View style={styles.tabItem}>
+            <Icon
+                size={26}
+                strokeWidth={focused ? 2.5 : 2}
+                color={
+                    focused
+                        ? COLORS.primary
+                        : COLORS.dark
+                }
+            />
+        </View>
+    );
 }
 
 export default function TabsLayout() {
-  return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarItemStyle: styles.tabBarItem,
-      }}
-    >
-      <Tabs.Screen
-        name="scanner"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="SCANNER" focused={focused} icon="◎" />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="analytics"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="ANALYTICS" focused={focused} icon="◈" />
-          ),
-        }}
-      />
-    </Tabs>
-  );
+    return (
+        <Tabs
+            screenOptions={{
+                headerShown: false,
+                tabBarStyle: styles.tabBar,
+                tabBarShowLabel: false,
+                tabBarActiveTintColor: COLORS.primary,
+                tabBarInactiveTintColor: COLORS.dark,
+                tabBarItemStyle: styles.tabBarItem,
+            }}
+        >
+            <Tabs.Screen
+                name="scanner"
+                options={{
+                    tabBarAccessibilityLabel: 'Scanner',
+                    tabBarIcon: ({ focused }) => (
+                        <TabIcon
+                            focused={focused}
+                            type="scanner"
+                        />
+                    ),
+                }}
+            />
+
+            <Tabs.Screen
+                name="analytics"
+                options={{
+                    tabBarAccessibilityLabel: 'Analytics',
+                    tabBarIcon: ({ focused }) => (
+                        <TabIcon
+                            focused={focused}
+                            type="analytics"
+                        />
+                    ),
+                }}
+            />
+        </Tabs>
+    );
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: '#0A0A0A',
-    borderTopWidth: 1,
-    borderTopColor: COLORS.cardBorder,
-    height: Platform.OS === 'ios' ? 100 : 80,
-    paddingTop: 10,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 10,
-    elevation: 0,
-    shadowOpacity: 0,
-  },
-  tabBarItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: Platform.OS === 'ios' ? 66 : 60,
-    paddingTop: 4,
-  },
-  tabItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 80,
-  },
-  tabIcon: {
-    fontSize: 20,
-    color: COLORS.textMuted,
-    marginBottom: 3,
-  },
-  tabIconActive: {
-    color: COLORS.primary,
-  },
-  tabLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    letterSpacing: 1.5,
-  },
-  tabLabelActive: {
-    color: COLORS.primary,
-  },
-  activeDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.primary,
-    marginTop: 3,
-  },
+    tabBar: {
+        backgroundColor: "white",
+        // borderTopWidth: 0.5,
+        // borderTopColor: COLORS.dark,
+        height: Platform.OS === 'ios' ? 92 : 72,
+        paddingTop: 12,
+        paddingBottom: Platform.OS === 'ios' ? 20 : 6,
+        elevation: 0,
+        shadowOpacity: 0,
+    },
+
+    tabBarItem: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: Platform.OS === 'ios' ? 62 : 56,
+        paddingTop: 2,
+    },
+
+    tabItem: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 80,
+    },
+
+    tabLabel: {
+        marginTop: 4,
+        fontSize: 9,
+        fontWeight: '700',
+        color: COLORS.dark,
+        letterSpacing: 1.2,
+    },
+
+    tabLabelActive: {
+        color: COLORS.primary,
+    },
+
+    activeDot: {
+        width: 8,
+        height: 4,
+        borderRadius: 0,
+        backgroundColor: COLORS.primary,
+        marginTop: 3,
+    },
 });

@@ -1,167 +1,154 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import { fetchDashboardStats, fetchEntryLogs, type EntryLogItem } from '@/services/api';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  fetchScannerAnalytics,
+  ScannerApiError,
+  type ScannerAnalytics,
+  type ScannerActivity,
+} from "@/services/api";
 
 export type ScanRecord = {
   id: string;
   name: string;
   ticketId: string;
-  status: 'valid' | 'invalid' | 'duplicate';
+  status: "valid" | "invalid" | "duplicate";
   time: Date;
 };
 
-type AnalyticsState = {
+type AnalyticsContextType = {
+  analytics: ScannerAnalytics | null;
+  history: ScanRecord[];
   totalScans: number;
   validCount: number;
   invalidCount: number;
   duplicateCount: number;
   activeEntries: number;
-  history: ScanRecord[];
-};
-
-type AnalyticsContextType = AnalyticsState & {
-  recordScan: (type: 'valid' | 'invalid' | 'duplicate', name?: string, ticketId?: string) => void;
-  refreshStats: () => Promise<void>;
+  loading: boolean;
+  error: string | null;
   successRate: number;
   rejectionRate: number;
   duplicateRate: number;
   entryRate: number;
   peakWindow: string;
-};
-
-const MOCK_HISTORY: ScanRecord[] = [
-  { id: 'm1', name: 'AGENT COLE', ticketId: 'TEDX-2026-00201', status: 'valid', time: new Date(Date.now() - 3600000 * 2) },
-  { id: 'm2', name: 'OPERATIVE NASH', ticketId: 'TEDX-2026-00145', status: 'valid', time: new Date(Date.now() - 3600000 * 1.5) },
-  { id: 'm3', name: 'CONTACT LIU', ticketId: 'TEDX-2026-00089', status: 'invalid', time: new Date(Date.now() - 3600000) },
-  { id: 'm4', name: 'AGENT VOLKOV', ticketId: 'TEDX-2026-00312', status: 'valid', time: new Date(Date.now() - 2700000) },
-  { id: 'm5', name: 'ASSET BRENNAN', ticketId: 'TEDX-2026-00067', status: 'duplicate', time: new Date(Date.now() - 1800000) },
-  { id: 'm6', name: 'OPERATIVE DIAZ', ticketId: 'TEDX-2026-00411', status: 'valid', time: new Date(Date.now() - 1200000) },
-  { id: 'm7', name: 'CONTACT YUEN', ticketId: 'TEDX-2026-00288', status: 'valid', time: new Date(Date.now() - 600000) },
-];
-
-const INITIAL_STATE: AnalyticsState = {
-  totalScans: 7,
-  validCount: 5,
-  invalidCount: 1,
-  duplicateCount: 1,
-  activeEntries: 5,
-  history: MOCK_HISTORY,
+  refreshStats: () => Promise<void>;
 };
 
 const AnalyticsContext = createContext<AnalyticsContextType | null>(null);
 
+const getRecordStatus = (activity: ScannerActivity): ScanRecord["status"] => {
+  if (activity.outcome === "DUPLICATE") return "duplicate";
+  if (activity.outcome === "DENIED") return "invalid";
+  return "valid";
+};
+
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AnalyticsState>(INITIAL_STATE);
+  const [analytics, setAnalytics] = useState<ScannerAnalytics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const refreshStats = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const [stats, logsData] = await Promise.all([
-        fetchDashboardStats(),
-        fetchEntryLogs(1, 20),
-      ]);
-
-      if (stats) {
-        setState((prev) => {
-          let updatedHistory = prev.history;
-          if (logsData && logsData.logs && logsData.logs.length > 0) {
-            updatedHistory = logsData.logs.map((log: EntryLogItem) => ({
-              id: log._id,
-              name: (log.booking?.name || 'ATTENDEE').toUpperCase(),
-              ticketId: log.ticketId,
-              status: 'valid' as const,
-              time: new Date(log.scannedAt),
-            }));
-          }
-
-          const valid = stats.checkedInBookingsCount || prev.validCount;
-          const total = Math.max(stats.totalCheckInLogs || prev.totalScans, valid + prev.invalidCount + prev.duplicateCount);
-
-          return {
-            ...prev,
-            totalScans: total,
-            validCount: valid,
-            activeEntries: valid,
-            history: updatedHistory,
-          };
-        });
+      setAnalytics(await fetchScannerAnalytics());
+    } catch (refreshError) {
+      if (
+        refreshError instanceof ScannerApiError &&
+        refreshError.status === 401
+      ) {
+        setAnalytics(null);
+        setError("Scanner session expired. Sign in again.");
+      } else {
+        setError(
+          refreshError instanceof Error
+            ? refreshError.message
+            : "Unable to load live analytics.",
+        );
       }
-    } catch {
-      // Keep local state on fetch error
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    refreshStats();
+    void refreshStats();
   }, [refreshStats]);
 
-  const recordScan = useCallback((type: 'valid' | 'invalid' | 'duplicate', name?: string, ticketId?: string) => {
-    const record: ScanRecord = {
-      id: `s-${Date.now()}`,
-      name: name || 'UNKNOWN',
-      ticketId: ticketId || 'TEDX-2026-XXXXX',
-      status: type,
-      time: new Date(),
+  const history = useMemo(
+    () =>
+      (analytics?.recentActivity || []).map((activity) => ({
+        id: activity._id,
+        name: (activity.booking?.name || "UNKNOWN ATTENDEE").toUpperCase(),
+        ticketId: activity.ticketId,
+        status: getRecordStatus(activity),
+        time: new Date(activity.scannedAt),
+      })),
+    [analytics],
+  );
+
+  const values = useMemo(() => {
+    const totalScans = analytics?.scans.total ?? 0;
+    const validCount = analytics?.scans.verified ?? 0;
+    const invalidCount = analytics?.scans.denied ?? 0;
+    const duplicateCount = analytics?.scans.duplicate ?? 0;
+    const records = analytics?.recentActivity ?? [];
+    const admissionTimes = records
+      .filter((activity) => activity.activityType === "ADMISSION")
+      .map((activity) => new Date(activity.scannedAt).getTime())
+      .filter(Number.isFinite);
+    const entryRate =
+      admissionTimes.length > 1
+        ? admissionTimes.length /
+          Math.max(
+            (Math.max(...admissionTimes) - Math.min(...admissionTimes)) / 60000,
+            1,
+          )
+        : admissionTimes.length;
+
+    const buckets: Record<string, number> = {};
+    for (const activity of records) {
+      const date = new Date(activity.scannedAt);
+      if (!Number.isFinite(date.getTime())) continue;
+      const halfHour = Math.floor(date.getMinutes() / 30) * 30;
+      const key = `${date.getHours()}:${String(halfHour).padStart(2, "0")}`;
+      buckets[key] = (buckets[key] || 0) + 1;
+    }
+    const peakKey = Object.entries(buckets).sort(
+      (left, right) => right[1] - left[1],
+    )[0]?.[0];
+    const peakWindow = peakKey
+      ? (() => {
+          const [hour, minute] = peakKey.split(":").map(Number);
+          const start = new Date();
+          start.setHours(hour, minute, 0, 0);
+          const end = new Date(start.getTime() + 30 * 60000);
+          return `${start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} - ${end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+        })()
+      : "NO DATA";
+
+    return {
+      totalScans,
+      validCount,
+      invalidCount,
+      duplicateCount,
+      activeEntries: analytics?.admissions.uniqueBookings ?? 0,
+      successRate: totalScans ? validCount / totalScans : 0,
+      rejectionRate: totalScans ? invalidCount / totalScans : 0,
+      duplicateRate: totalScans ? duplicateCount / totalScans : 0,
+      entryRate,
+      peakWindow,
     };
-
-    setState((prev) => ({
-      totalScans: prev.totalScans + 1,
-      validCount: prev.validCount + (type === 'valid' ? 1 : 0),
-      invalidCount: prev.invalidCount + (type === 'invalid' ? 1 : 0),
-      duplicateCount: prev.duplicateCount + (type === 'duplicate' ? 1 : 0),
-      activeEntries: prev.activeEntries + (type === 'valid' ? 1 : 0),
-      history: [record, ...prev.history].slice(0, 50),
-    }));
-  }, []);
-
-  const derived = useMemo(() => {
-    const total = state.totalScans || 1;
-    const successRate = state.validCount / total;
-    const rejectionRate = state.invalidCount / total;
-    const duplicateRate = state.duplicateCount / total;
-
-    // Entry rate: entries per minute based on history time span
-    let entryRate = 0;
-    if (state.history.length >= 2) {
-      const newest = state.history[0].time.getTime();
-      const oldest = state.history[state.history.length - 1].time.getTime();
-      const minutes = Math.max((newest - oldest) / 60000, 1);
-      entryRate = state.totalScans / minutes;
-    }
-
-    // Peak window: find 30-min window with most scans
-    let peakWindow = 'NO DATA';
-    if (state.history.length > 0) {
-      const buckets: Record<string, number> = {};
-      for (const scan of state.history) {
-        const d = scan.time;
-        const halfHour = Math.floor(d.getMinutes() / 30) * 30;
-        const key = `${d.getHours()}:${halfHour.toString().padStart(2, '0')}`;
-        buckets[key] = (buckets[key] || 0) + 1;
-      }
-      let maxKey = '';
-      let maxCount = 0;
-      for (const [key, count] of Object.entries(buckets)) {
-        if (count > maxCount) { maxCount = count; maxKey = key; }
-      }
-      if (maxKey) {
-        const [h, m] = maxKey.split(':').map(Number);
-        const endM = m + 30;
-        const endH = endM >= 60 ? h + 1 : h;
-        const endMin = endM >= 60 ? endM - 60 : endM;
-        const fmt = (hr: number, mn: number) => {
-          const suffix = hr >= 12 ? 'PM' : 'AM';
-          const h12 = hr % 12 || 12;
-          return `${h12}:${mn.toString().padStart(2, '0')} ${suffix}`;
-        };
-        peakWindow = `${fmt(h, m)} - ${fmt(endH, endMin)}`;
-      }
-    }
-
-    return { successRate, rejectionRate, duplicateRate, entryRate, peakWindow };
-  }, [state]);
+  }, [analytics]);
 
   const value = useMemo(
-    () => ({ ...state, ...derived, recordScan, refreshStats }),
-    [state, derived, recordScan, refreshStats]
+    () => ({ analytics, history, loading, error, refreshStats, ...values }),
+    [analytics, history, loading, error, refreshStats, values],
   );
 
   return (
@@ -172,7 +159,8 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAnalytics() {
-  const ctx = useContext(AnalyticsContext);
-  if (!ctx) throw new Error('useAnalytics must be used within AnalyticsProvider');
-  return ctx;
+  const context = useContext(AnalyticsContext);
+  if (!context)
+    throw new Error("useAnalytics must be used within AnalyticsProvider");
+  return context;
 }

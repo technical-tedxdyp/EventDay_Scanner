@@ -5,17 +5,25 @@ import {
   Text,
   StyleSheet,
   Animated,
+  Pressable,
   type TextInputProps,
 } from 'react-native';
-import { COLORS, RADIUS, SPACING, FONT_SIZE, SHADOW } from '@/utils/theme';
+import { COLORS, SPACING, FONT_SIZE, FONT_FAMILY, SHADOW } from '@/utils/theme';
 
 type InputFieldProps = TextInputProps & {
   label: string;
   icon?: string;
 };
 
-export function InputField({ label, icon, style, ...props }: InputFieldProps) {
+export function InputField({
+  label,
+  icon,
+  style,
+  secureTextEntry,
+  ...props
+}: InputFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const glowAnim = useRef(new Animated.Value(0)).current;
 
   const handleFocus = () => {
@@ -57,8 +65,26 @@ export function InputField({ label, icon, style, ...props }: InputFieldProps) {
           placeholderTextColor={COLORS.textMuted}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          secureTextEntry={secureTextEntry && !isPasswordVisible}
           {...props}
         />
+        {secureTextEntry && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              isPasswordVisible ? 'Hide access code' : 'Show access code'
+            }
+            accessibilityState={{ selected: isPasswordVisible }}
+            hitSlop={8}
+            onPress={() => setIsPasswordVisible((visible) => !visible)}
+            style={styles.visibilityToggle}
+          >
+            <View style={styles.eye}>
+              <View style={styles.eyePupil} />
+              {!isPasswordVisible && <View style={styles.eyeSlash} />}
+            </View>
+          </Pressable>
+        )}
       </Animated.View>
     </View>
   );
@@ -69,8 +95,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   label: {
+    fontFamily: FONT_FAMILY.pixel,
     color: COLORS.textSecondary,
-    fontSize: FONT_SIZE.xs,
+    fontSize: FONT_SIZE.md,
     fontWeight: '700',
     letterSpacing: 3,
     textTransform: 'uppercase',
@@ -80,8 +107,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.inputBg,
-    borderRadius: RADIUS.md,
-    borderWidth: 1.5,
+    borderRadius: 0,
+    borderWidth: 2,
     paddingHorizontal: SPACING.md,
   },
   icon: {
@@ -89,11 +116,40 @@ const styles = StyleSheet.create({
     marginRight: SPACING.sm,
   },
   input: {
+    fontFamily: FONT_FAMILY.sans,
     flex: 1,
     color: COLORS.text,
     fontSize: FONT_SIZE.lg,
     fontWeight: '500',
     paddingVertical: SPACING.md,
-    letterSpacing: 1,
+    letterSpacing: 0.3,
+  },
+  visibilityToggle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
+  eye: {
+    width: 20,
+    height: 14,
+    borderWidth: 1.8,
+    borderColor: COLORS.textSecondary,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  eyePupil: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: COLORS.textSecondary,
+  },
+  eyeSlash: {
+    position: 'absolute',
+    width: 23,
+    height: 2,
+    backgroundColor: COLORS.textSecondary,
+    transform: [{ rotate: '-38deg' }],
   },
 });

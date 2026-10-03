@@ -1,35 +1,37 @@
 export const COLORS = {
-  background: '#000000',
-  surface: '#0A0A0A',
-  card: '#111111',
-  cardBorder: 'rgba(255, 59, 59, 0.15)',
-  cardGlow: 'rgba(255, 0, 0, 0.25)',
+  background: '#f4f3ed',
+  surface: '#f4f3ed',
+  card: '#f4f3ed',
+  cardBorder: '#0a0a0a',
+  cardGlow: '#ff3300',
 
-  primary: '#E51A1A',
-  primaryDark: '#B30000',
-  primaryGlow: '#FF1A1A',
-  accent: '#FF7A00',
-  accentSoft: '#FF6B6B',
-  
-  text: '#F5F5F5',
-  textSecondary: '#B3B3B3',
-  textMuted: '#666666',
-  textDanger: '#FF3B3B',
+  primary: '#ff3300',
+  primaryDark: '#ff3300',
+  primaryGlow: '#ff3300',
+  accent: '#f4f3ed',
+  accentSoft: '#f4f3ed',
 
-  inputBg: '#111111',
-  inputBorder: 'rgba(255, 59, 59, 0.3)',
-  inputBorderFocus: 'rgba(255, 59, 59, 0.7)',
+  foreground: '#ededed',
+  text: '#0a0a0a',
+  textSecondary: '#0a0a0a',
+  textMuted: '#0a0a0a',
+  textDanger: '#ff3300',
 
-  overlay: 'rgba(0, 0, 0, 0.6)',
-  scannerFrame: '#FF3B3B',
-  
-  success: '#FF3B3B', // Red-themed "success" — intentionally NOT green
-  warning: '#FF7A00',
-  danger: '#FF0000',
+  inputBg: '#f4f3ed',
+  inputBorder: '#0a0a0a',
+  inputBorderFocus: '#ff3300',
 
-  gradientStart: '#140000',
-  gradientMid: '#2A0000',
-  gradientEnd: '#000000',
+  overlay: '#f4f3ed',
+  scannerFrame: '#f4f3ed',
+
+  success: '#ff3300',
+  warning: '#ff3300',
+  danger: '#ff3300',
+
+  gradientStart: '#f4f3ed',
+  gradientMid: '#f4f3ed',
+  gradientEnd: '#f4f3ed',
+  dark: '#0a0a0a',
 } as const;
 
 export const SPACING = {
@@ -42,10 +44,11 @@ export const SPACING = {
 } as const;
 
 export const RADIUS = {
-  sm: 8,
-  md: 12,
+  sm: 4,
+  md: 8,
   lg: 16,
-  xl: 20,
+  xl: 24,
+  "2xl": 30,
   round: 999,
 } as const;
 
@@ -55,38 +58,51 @@ export const FONT_SIZE = {
   md: 14,
   lg: 16,
   xl: 20,
+  '2xl': 24,
   xxl: 28,
   hero: 42,
   mega: 56,
 } as const;
 
+export const FONT_FAMILY = {
+  sans: 'SpaceGrotesk',
+  pixel: 'VT323',
+} as const;
+
 export const SHADOW = {
   glow: {
-    shadowColor: COLORS.primaryGlow,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 15,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.75,
+    shadowRadius: 0,
+    elevation: 4,
   },
   glowSubtle: {
-    shadowColor: COLORS.primaryGlow,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 0.6,
+    shadowRadius: 0,
+    elevation: 3,
   },
   glowAccent: {
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 15,
-    elevation: 12,
+    shadowColor: COLORS.dark,
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 0.45,
+    shadowRadius: 0,
+    elevation: 3,
   },
   cardShadow: {
-    shadowColor: COLORS.primaryGlow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 10,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 5, height: 5 },
+    shadowOpacity: 0.7,
+    shadowRadius: 0,
+    elevation: 4,
+  },
+  button: {
+    shadowColor: COLORS.dark,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.9,
+    shadowRadius: 0,
+    elevation: 4,
   },
 } as const;

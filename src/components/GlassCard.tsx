@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, type ViewStyle } from 'react-native';
-import { COLORS, RADIUS, SPACING, SHADOW } from '@/utils/theme';
+import { COLORS, SPACING } from '@/utils/theme';
 
 type GlassCardProps = {
   children: React.ReactNode;
@@ -11,17 +11,27 @@ type GlassCardProps = {
 
 export function GlassCard({ children, style, glowIntensity = 'medium', variant = 'primary' }: GlassCardProps) {
   const isSuccess = variant === 'success';
-  const glowStyle =
-    glowIntensity === 'strong'
-      ? isSuccess ? { ...SHADOW.glow, shadowColor: '#34D399' } : SHADOW.glow
-      : glowIntensity === 'subtle'
-        ? isSuccess ? { ...SHADOW.glowSubtle, shadowColor: '#34D399' } : SHADOW.glowSubtle
-        : isSuccess ? { ...SHADOW.cardShadow, shadowColor: '#34D399' } : SHADOW.cardShadow;
+  const isHighlighted = glowIntensity !== 'subtle';
 
   return (
-    <View style={[styles.outerGlow, glowStyle]}>
-      <View style={[styles.card, isSuccess && { borderColor: 'rgba(0, 255, 65, 0.15)' }, style]}>
-        <View style={[styles.borderGlow, isSuccess && { backgroundColor: '#00FF41' }]} />
+    <View style={styles.outerGlow}>
+      {isHighlighted && <View pointerEvents="none" style={styles.shadowBlock} />}
+      <View
+        style={[
+          styles.card,
+          !isHighlighted && styles.cardSubtle,
+          isSuccess && styles.cardSuccess,
+          style,
+        ]}
+      >
+        {/* {isHighlighted && (
+          <View
+            style={[
+              styles.cornerAccent,
+              isSuccess && { backgroundColor: COLORS.success },
+            ]}
+          />
+        )} */}
         {children}
       </View>
     </View>
@@ -30,24 +40,38 @@ export function GlassCard({ children, style, glowIntensity = 'medium', variant =
 
 const styles = StyleSheet.create({
   outerGlow: {
-    borderRadius: RADIUS.lg,
+    position: 'relative',
+  },
+  shadowBlock: {
+    position: 'absolute',
+    top: -5,
+    left: -5,
+    right: 5,
+    bottom: 5,
+    backgroundColor: COLORS.primary,
   },
   card: {
     backgroundColor: COLORS.card,
-    borderRadius: RADIUS.lg,
+    borderRadius: 0,
     padding: SPACING.lg,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+    borderWidth: 2,
+    borderColor: COLORS.dark,
     overflow: 'hidden',
     position: 'relative',
   },
-  borderGlow: {
+  cardSubtle: {
+    backgroundColor: COLORS.surface,
+    borderColor: COLORS.dark,
+  },
+  cardSuccess: {
+    borderColor: COLORS.primary,
+  },
+  cornerAccent: {
     position: 'absolute',
     top: 0,
-    left: 0,
     right: 0,
-    height: 1,
+    width: 12,
+    height: 12,
     backgroundColor: COLORS.primary,
-    opacity: 0.3,
   },
 });

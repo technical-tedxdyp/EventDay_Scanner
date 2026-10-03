@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { COLORS, RADIUS, SPACING, FONT_SIZE } from '@/utils/theme';
+import { COLORS, SPACING, FONT_SIZE, FONT_FAMILY } from '@/utils/theme';
 
 type StatusBadgeProps = {
   label: string;
@@ -11,7 +11,7 @@ type StatusBadgeProps = {
 export function StatusBadge({
   label,
   color = COLORS.primary,
-  pulse = true,
+  pulse = false,
 }: StatusBadgeProps) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -38,7 +38,7 @@ export function StatusBadge({
   }, [pulse, pulseAnim]);
 
   return (
-    <View style={[styles.badge, { backgroundColor: `${color}15`, borderColor: `${color}25` }]}>
+    <View style={[styles.badge, { borderColor: color }]}>
       <Animated.View
         style={[
           styles.dot,
@@ -56,9 +56,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs + 2,
-    borderRadius: RADIUS.round,
+    borderRadius: 0,
     alignSelf: 'flex-start',
     borderWidth: 1,
+    backgroundColor: COLORS.background,
   },
   dot: {
     width: 8,
@@ -67,6 +68,7 @@ const styles = StyleSheet.create({
     marginRight: SPACING.sm,
   },
   label: {
+    fontFamily: FONT_FAMILY.pixel,
     fontSize: FONT_SIZE.xs,
     fontWeight: '800',
     letterSpacing: 2,

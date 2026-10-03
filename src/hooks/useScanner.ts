@@ -1,7 +1,11 @@
-import { useState, useCallback } from 'react';
-import { useRouter } from 'expo-router';
-import { scanTicket, scanTicketByQr, type TicketResult } from '@/services/api';
-import { useAnalytics } from '@/hooks/useAnalytics';
+import { useCallback, useState } from "react";
+import { useRouter } from "expo-router";
+import {
+  scanTicketByQr,
+  ScannerApiError,
+  type TicketResult,
+} from "@/services/api";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 type ScannerState = {
   isScanning: boolean;
@@ -11,85 +15,88 @@ type ScannerState = {
 
 export function useScanner() {
   const router = useRouter();
-  const { recordScan } = useAnalytics();
+  const { refreshStats } = useAnalytics();
   const [state, setState] = useState<ScannerState>({
     isScanning: false,
     lastResult: null,
     error: null,
   });
 
-  const handleResult = useCallback((result: TicketResult) => {
-    setState({ isScanning: false, lastResult: result, error: null });
+  const handleResult = useCallback(
+    (result: TicketResult, sessionId: string) => {
+      setState({ isScanning: false, lastResult: result, error: null });
 
-    switch (result.status) {
-      case 'valid':
-        recordScan('valid', result.ticket?.holderName, result.ticket?.id);
+      if (result.status === "valid" && result.ticket) {
         router.push({
-          pathname: '/(scanner)/valid',
+          pathname: "/(scanner)/valid",
           params: {
-            holderName: result.ticket?.holderName ?? '',
-            group: String(result.ticket?.group ?? 0),
-            accessType: result.ticket?.accessType ?? '',
-            ticketId: result.ticket?.id ?? '',
+            holderName: result.ticket.holderName,
+            group: String(result.ticket.group),
+            ticketId: result.ticket.id,
+            sessionId,
+            sessionTitle: result.session?.title ?? "",
           },
         });
-        break;
-      case 'already-used':
-        recordScan('duplicate', result.ticket?.holderName, result.ticket?.id);
+        return;
+      }
+
+      if (result.status === "already-used") {
         router.push({
-          pathname: '/(scanner)/already-used',
+          pathname: "/(scanner)/already-used",
           params: {
-            holderName: result.ticket?.holderName ?? '',
-            usedAt: result.usedAt ?? '',
-            ticketId: result.ticket?.id ?? '',
+            holderName: result.ticket?.holderName ?? "ATTENDEE",
+            usedAt: result.usedAt ?? "",
+            ticketId: result.ticket?.id ?? "",
+            sessionTitle: result.session?.title ?? "",
           },
         });
-        break;
-      case 'invalid':
-        recordScan('invalid', 'UNKNOWN', 'N/A');
-        router.push({
-          pathname: '/(scanner)/invalid',
-          params: {
-            reason: result.reason ?? 'UNKNOWN ERROR',
-          },
-        });
-        break;
-    }
-  }, [router, recordScan]);
+        return;
+      }
 
-  // Manual scan (simulated, cycles through mock data)
-  const performScan = useCallback(async () => {
-    setState((prev) => ({ ...prev, isScanning: true, error: null }));
-    try {
-      const result = await scanTicket();
-      handleResult(result);
-    } catch {
-      setState((prev) => ({
-        ...prev,
-        isScanning: false,
-        error: 'SYSTEM ERROR — CONNECTION LOST',
-      }));
-    }
-  }, [handleResult]);
+      router.push({
+        pathname: "/(scanner)/invalid",
+        params: {
+          reason: result.reason ?? "TICKET VERIFICATION DENIED",
+          ticketId: result.ticket?.id ?? "",
+        },
+      });
+    },
+    [router],
+  );
 
-  // QR code scan (looks up actual ticket by scanned data)
-  const performQrScan = useCallback(async (qrData: string) => {
-    setState((prev) => ({ ...prev, isScanning: true, error: null }));
-    try {
-      const result = await scanTicketByQr(qrData);
-      handleResult(result);
-    } catch {
-      setState((prev) => ({
-        ...prev,
-        isScanning: false,
-        error: 'SYSTEM ERROR — QR DECODE FAILED',
-      }));
-    }
-  }, [handleResult]);
+  const performQrScan = useCallback(
+    async (qrData: string, sessionId: string) => {
+      if (!sessionId) {
+        setState((previous) => ({
+          ...previous,
+          error: "Select a session before scanning.",
+        }));
+        return;
+      }
+      setState((previous) => ({ ...previous, isScanning: true, error: null }));
+      try {
+        const result = await scanTicketByQr(qrData, sessionId);
+        void refreshStats();
+        handleResult(result, sessionId);
+      } catch (error) {
+        if (error instanceof ScannerApiError && error.status === 401) {
+          router.replace("/(auth)/login");
+          return;
+        }
+        const message =
+          error instanceof Error ? error.message : "Unable to verify ticket.";
+        setState((previous) => ({
+          ...previous,
+          isScanning: false,
+          error: `NOT VERIFIED: ${message}`,
+        }));
+      }
+    },
+    [handleResult, refreshStats, router],
+  );
 
   return {
     ...state,
-    performScan,
     performQrScan,
   };
 }
